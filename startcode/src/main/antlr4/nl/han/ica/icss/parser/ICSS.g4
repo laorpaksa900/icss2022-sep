@@ -45,14 +45,19 @@ ASSIGNMENT_OPERATOR: ':=';
 
 
 //--- PARSER: ---
-stylesheet: stylerule* EOF;
+stylesheet: (stylerule | assignment)* EOF;
 
 stylerule: selector OPEN_BRACE declaration* CLOSE_BRACE;
 
 selector: LOWER_IDENT | ID_IDENT | CLASS_IDENT;
 
-declaration: property COLON literal SEMICOLON;
+declaration: property COLON expression SEMICOLON;
 
 property: 'color' | 'background-color' | 'width' | 'height';
 
-literal: PIXELSIZE | PERCENTAGE | COLOR | SCALAR;
+literal: PIXELSIZE | PERCENTAGE | COLOR | SCALAR | TRUE | FALSE;
+
+expression: literal | CAPITAL_IDENT;
+
+assignment: CAPITAL_IDENT ASSIGNMENT_OPERATOR expression SEMICOLON;
+

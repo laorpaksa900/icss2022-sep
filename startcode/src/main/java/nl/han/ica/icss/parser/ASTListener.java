@@ -18,7 +18,7 @@ import nl.han.ica.icss.ast.selectors.TagSelector;
  * This class extracts the ICSS Abstract Syntax Tree from the Antlr Parse tree.
  */
 public class ASTListener extends ICSSBaseListener {
-	
+
 	//Accumulator attributes:
 	private AST ast;
 	//Use this to keep track of the parent nodes when recursively traversing the ast
@@ -27,9 +27,10 @@ public class ASTListener extends ICSSBaseListener {
 	public ASTListener() {
 		ast = new AST();
 	}
-    public AST getAST() {
-        return ast;
-    }
+
+	public AST getAST() {
+		return ast;
+	}
 
 	@Override
 	public void enterStylerule(ICSSParser.StyleruleContext ctx) {
@@ -70,6 +71,7 @@ public class ASTListener extends ICSSBaseListener {
 	public void exitDeclaration(ICSSParser.DeclarationContext ctx) {
 		currentContainer.pop();
 	}
+
 	@Override
 	public void enterLiteral(ICSSParser.LiteralContext ctx) {
 		Literal literal;
@@ -80,10 +82,38 @@ public class ASTListener extends ICSSBaseListener {
 			literal = new PercentageLiteral(ctx.getText());
 		} else if (ctx.COLOR() != null) {
 			literal = new ColorLiteral(ctx.getText());
+		} else if (ctx.TRUE() != null || ctx.FALSE() != null) {
+			literal = new BoolLiteral(ctx.getText());
 		} else {
 			literal = new ScalarLiteral(ctx.getText());
 		}
 
 		currentContainer.peek().addChild(literal);
 	}
+
+	@Override
+	public void enterAssignment(ICSSParser.AssignmentContext ctx) {
+		VariableAssignment assignment = new VariableAssignment();
+
+		assignment.addChild(new VariableReference(ctx.CAPITAL_IDENT().getText()));
+
+		ast.root.addChild(assignment);
+		currentContainer.push(assignment);
+	}
+
+	@Override
+	public void exitAssignment(ICSSParser.AssignmentContext ctx) {
+		currentContainer.pop();
+	}
+
+
+	@Override
+	public void enterExpression(ICSSParser.ExpressionContext ctx) {
+		if (ctx.CAPITAL_IDENT() != null) {
+			currentContainer.peek().addChild(
+					new VariableReference(ctx.getText())
+			);
+		}
+	}
+
 }
